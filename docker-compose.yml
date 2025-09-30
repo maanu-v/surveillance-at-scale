@@ -1,0 +1,269 @@
+services:
+  # ================== HADOOP CLUSTER ==================
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: namenode
+    environment:
+      - CLUSTER_NAME=${HADOOP_CLUSTER_NAME}
+      - CORE_CONF_fs_defaultFS=${HADOOP_FS_DEFAULT_FS}
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+    ports:
+      - "${HADOOP_NAMENODE_UI_PORT}:9870"   # Namenode UI
+      - "${HADOOP_NAMENODE_PORT}:9000"
+    volumes:
+      - hadoop_namenode:/hadoop/dfs/name
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    mem_limit: 2g
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+    networks:
+      - surveillance-net
+
+  datanode:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: datanode
+    environment:
+      - CLUSTER_NAME=${HADOOP_CLUSTER_NAME}
+      - NAMENODE_HOST=namenode
+      - CORE_CONF_fs_defaultFS=${HADOOP_FS_DEFAULT_FS}
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+    depends_on:
+      - namenode
+    ports:
+      - "${HADOOP_DATANODE_UI_PORT}:9864"   # Datanode UI
+    volumes:
+      - hadoop_datanode:/hadoop/dfs/data
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    mem_limit: 2g
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+    restart: unless-stopped
+    networks:
+      - surveillance-net
+
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    container_name: resourcemanager
+    environment:
+      - CLUSTER_NAME=${HADOOP_CLUSTER_NAME}
+      - CORE_CONF_fs_defaultFS=${HADOOP_FS_DEFAULT_FS}
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+    depends_on:
+      - namenode
+    ports:
+      - "${HADOOP_RESOURCEMANAGER_UI_PORT}:8088"   # ResourceManager UI
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    mem_limit: 1g
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    networks:
+      - surveillance-net
+
+  nodemanager:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager
+    environment:
+      - CLUSTER_NAME=${HADOOP_CLUSTER_NAME}
+      - CORE_CONF_fs_defaultFS=${HADOOP_FS_DEFAULT_FS}
+      - YARN_CONF_yarn_resourcemanager_hostname=resourcemanager
+    depends_on:
+      - resourcemanager
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    mem_limit: 1g
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    networks:
+      - surveillance-net
+
+  # ================== KAFKA CLUSTER ==================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: ${ZOOKEEPER_PORT}
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "${ZOOKEEPER_PORT}:2181"
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper/data
+      - zookeeper_logs:/var/lib/zookeeper/log
+    networks:
+      - surveillance-net
+
+  kafka1:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka1
+    depends_on:
+      - zookeeper
+    ports:
+      - "${KAFKA1_PORT}:9092"
+      - "${KAFKA1_JMX_PORT}:9101"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_PORT}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:29092,PLAINTEXT_HOST://localhost:${KAFKA1_PORT}
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: ${KAFKA1_JMX_PORT}
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: '${KAFKA_AUTO_CREATE_TOPICS_ENABLE}'
+      KAFKA_DELETE_TOPIC_ENABLE: '${KAFKA_DELETE_TOPIC_ENABLE}'
+      KAFKA_ZOOKEEPER_SESSION_TIMEOUT_MS: 30000
+      KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS: 30000
+    volumes:
+      - kafka1_data:/var/lib/kafka/data
+    networks:
+      - surveillance-net
+
+  kafka2:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka2
+    depends_on:
+      - zookeeper
+    ports:
+      - "${KAFKA2_PORT}:9093"
+      - "${KAFKA2_JMX_PORT}:9102"
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_PORT}
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:29093,PLAINTEXT_HOST://localhost:${KAFKA2_PORT}
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR}
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: ${KAFKA2_JMX_PORT}
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: '${KAFKA_AUTO_CREATE_TOPICS_ENABLE}'
+      KAFKA_DELETE_TOPIC_ENABLE: '${KAFKA_DELETE_TOPIC_ENABLE}'
+      KAFKA_ZOOKEEPER_SESSION_TIMEOUT_MS: 30000
+      KAFKA_ZOOKEEPER_CONNECTION_TIMEOUT_MS: 30000
+    volumes:
+      - kafka2_data:/var/lib/kafka/data
+    networks:
+      - surveillance-net
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka1
+      - kafka2
+    ports:
+      - "${KAFKA_UI_PORT}:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: ${KAFKA_CLUSTER_NAME}
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: ${KAFKA_BOOTSTRAP_SERVERS_INTERNAL}
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:${ZOOKEEPER_PORT}
+    networks:
+      - surveillance-net
+
+  # ================== SPARK CLUSTER ==================
+  spark-master:
+    image: spark-yolo:latest
+    container_name: spark-master
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master"]
+    environment:
+      - SPARK_MASTER_HOST=0.0.0.0
+      - SPARK_MASTER_PORT=${SPARK_MASTER_PORT}
+      - SPARK_MASTER_WEBUI_PORT=8080
+    ports:
+      - "${SPARK_MASTER_UI_PORT}:8080"   # Spark Master UI
+      - "${SPARK_MASTER_PORT}:7077"   # Spark Master Port
+    volumes:
+      - ${SPARK_APPS_DIR}:/opt/spark-apps
+      - ${SPARK_DATA_DIR}:/opt/spark-data
+    networks:
+      - surveillance-net
+
+  spark-worker-1:
+    image: spark-yolo:latest
+    container_name: spark-worker-1
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077"]
+    environment:
+      - SPARK_WORKER_CORES=${SPARK_WORKER_CORES}
+      - SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}
+      - SPARK_WORKER_WEBUI_PORT=${SPARK_WORKER_1_UI_PORT}
+    depends_on:
+      - spark-master
+    volumes:
+      - ${SPARK_APPS_DIR}:/opt/spark-apps
+      - ${SPARK_DATA_DIR}:/opt/spark-data
+    networks:
+      - surveillance-net
+
+  spark-worker-2:
+    image: spark-yolo:latest
+    container_name: spark-worker-2
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077"]
+    environment:
+      - SPARK_WORKER_CORES=${SPARK_WORKER_CORES}
+      - SPARK_WORKER_MEMORY=${SPARK_WORKER_MEMORY}
+      - SPARK_WORKER_WEBUI_PORT=${SPARK_WORKER_2_UI_PORT}
+    depends_on:
+      - spark-master
+    volumes:
+      - ${SPARK_APPS_DIR}:/opt/spark-apps
+      - ${SPARK_DATA_DIR}:/opt/spark-data
+    networks:
+      - surveillance-net
+
+  # ================== DATABASES ==================
+  # postgres:
+  #   image: postgres:15
+  #   container_name: postgres-db
+  #   environment:
+  #     POSTGRES_DB: surveillance_db
+  #     POSTGRES_USER: surveillance_user
+  #     POSTGRES_PASSWORD: surveillance_pass
+  #   ports:
+  #     - "5433:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #     - ./init-scripts:/docker-entrypoint-initdb.d
+  #   networks:
+  #     - surveillance-net
+
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: redis-cache
+  #   ports:
+  #     - "6380:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - surveillance-net
+
+  
+volumes:
+  hadoop_namenode:
+  hadoop_datanode:
+  zookeeper_data:
+  zookeeper_logs:
+  kafka1_data:
+  kafka2_data:
+  # postgres_data:
+  # redis_data:
+
+networks:
+  surveillance-net:
+    driver: bridge

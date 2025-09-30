@@ -1,0 +1,9 @@
+[project]
+name = "surveillance-at-scale"
+version = "0.1.0"
+description = "This Projects helps in camera surveillance at scale."
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "kafka-python>=2.2.15",
+]

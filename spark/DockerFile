@@ -1,0 +1,21 @@
+FROM apache/spark:3.4.0-scala2.12-java11-python3-ubuntu
+
+USER root
+
+# Install system dependencies for OpenCV & ffmpeg
+RUN apt-get update && \
+    mkdir -p /var/lib/apt/lists/partial && \
+    apt-get install -y --fix-missing libgl1-mesa-glx libglib2.0-0 ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
+
+# Upgrade pip first
+RUN pip install --upgrade pip
+
+# Install Python packages individually to handle conflicts
+RUN pip install --no-cache-dir opencv-python-headless
+RUN pip install --no-cache-dir kafka-python
+RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir ultralytics --no-deps
+RUN pip install --no-cache-dir matplotlib pillow pyyaml requests scipy tqdm pandas seaborn
+
+USER spark
