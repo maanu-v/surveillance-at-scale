@@ -6,4 +6,8 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "kafka-python>=2.2.15",
+    "opencv-python>=4.8.0",
+    "numpy>=1.21.0",
+    "hdfs3>=0.3.1",
+    "requests>=2.28.0",
 ]
