@@ -1,13 +1,121 @@
+# ================== PYTHON ==================
 # Python-generated files
 __pycache__/
 *.py[oc]
-build/
+*.pyo
+*.pyd
 dist/
 wheels/
 *.egg-info
-.DS_Store
+*.egg
+.eggs/
+
 # Virtual environments
 .venv
+venv/
+ENV/
+env/
+.virtualenv
 
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# ================== SCALA & SBT ==================
+# SBT specific
+target/
+project/target/
+project/project/
+lib_managed/
+src_managed/
+.history
+.cache
+.lib/
+
+# Scala-IDE specific
+.scala_dependencies
+.worksheet
+.idea/
+.bsp/
+
+# Metals (Scala Language Server)
+.metals/
+.bloop/
+metals.sbt
+
+# ================== SPARK ==================
+# Spark specific
+spark-warehouse/
+metastore_db/
+derby.log
+*.log
+
+# Spark assembly JARs (keep source)
+assembly/
+
+# ================== DATA & ENVIRONMENT ==================
+# Data directories
 data/
-.env*
+!data/.gitkeep
+!data/spark-apps/.gitkeep
+!data/spark-data/.gitkeep
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# ================== SYSTEM FILES ==================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ================== IDE & EDITORS ==================
+# VSCode
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Eclipse
+.classpath
+.project
+.settings/
+bin/
+
+# NetBeans
+nbproject/
+nbbuild/
+nbdist/
+.nb-gradle/
+
+# ================== BUILD & DEPENDENCIES ==================
+# Maven
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# Gradle
+.gradle/
+gradle-app.setting
+!gradle-wrapper.jar
+
+# ================== DOCKER ==================
+# Docker volumes data (handled by docker-compose)
+volumes/
+
+# ================== LOGS ==================
+*.log
+logs/
+log/
