@@ -1,0 +1,11 @@
+data/raw/
+
+docs/
+
+project/
+target/
+
+data/spark-apps/*.jar
+data/spark-apps/*.pt
+
+.env
