@@ -1,0 +1,1 @@
+docker exec -it spark-master /opt/spark/bin/spark-submit   --master spark://spark-master:7077   --deploy-mode client   --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.1   /opt/spark-apps/spark-yolo-consumer.py
